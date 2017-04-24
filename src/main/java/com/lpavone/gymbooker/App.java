@@ -50,7 +50,7 @@ class App {
         System.out.println("Selenium web driver created and initialized");
     }
 
-    public List<Workout> getAvailableClasses() {
+    public List<Workout> getAvailableClasses() throws Exception{
         doLogin();
         //find available classes
         goToTimetable();
@@ -81,12 +81,12 @@ class App {
         driver.get(Constants.TIMETABLE_PAGE);
     }
 
-    public void doLogin() {
+    public void doLogin() throws Exception{
         //LOGIN
         try {
             driver.get(Constants.WEBSITE_HOME_URL);
-            driver.findElement(By.name(Constants.EMAIL_FIELD_NAME)).sendKeys(getEmail());
-            driver.findElement(By.name(Constants.PASSWORD_FIELD_NAME)).sendKeys(getPassword());
+            driver.findElement(By.id(Constants.EMAIL_FIELD_NAME)).sendKeys(getEmail());
+            driver.findElement(By.id(Constants.PASSWORD_FIELD_NAME)).sendKeys(getPassword());
             driver.findElement(By.id("login")).click();
             //wait until log out form is loaded (max 6 secs)
             new WebDriverWait(driver, 6)
@@ -94,6 +94,7 @@ class App {
             System.out.println("BROWSER EVENT: Logged in");
         } catch (Exception e) {
             System.out.println("BROWSER EVENT: cannot login");
+            throw new Exception(e);
         }
     }
 

@@ -1,5 +1,6 @@
 package com.lpavone.gymbooker;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -7,8 +8,8 @@ import java.util.List;
  */
 class BookerJob {
 
-    public static void book(String user){
-        App app = new App();
+    public static void book(String user) throws Exception{
+        HeadlessApp app = new HeadlessApp();
         CsvUtils csvUtils = new CsvUtils();
         app.setUser(user);
         app.doLogin();
@@ -19,7 +20,11 @@ class BookerJob {
             app.goToTimetable();
             System.out.println(String.format("Attempting to book: %s", c));
             String[] classInfo = c.split(",");
-            app.findWorkouts(classInfo[0], classInfo[1]);
+            try {
+                app.findWorkouts(classInfo[0], classInfo[1]);
+            } catch (InterruptedException | IOException e) {
+                e.printStackTrace();
+            }
         });
         app.doLogout();
         System.out.println("Logout done.");
