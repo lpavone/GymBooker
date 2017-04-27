@@ -15,8 +15,6 @@ class Booking {
             if(args.length == 2 && "autojob".equals(args[0].trim())){
                 BookerJob.book(args[1].trim());
             } else {
-                //Console c = System.console();
-                //String user = c.readLine
                 System.out.println("Select User, (1) Clau or (2) Leo: ");
                 Scanner scanner = new Scanner(System.in);
                 HeadlessApp app = new HeadlessApp(Integer.parseInt( scanner.nextLine()) == 1 ? "clau" : "leo");

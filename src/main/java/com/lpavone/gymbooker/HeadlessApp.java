@@ -4,10 +4,16 @@ package com.lpavone.gymbooker;/*
  * and open the template in the editor.
  */
 
+import com.gargoylesoftware.htmlunit.AjaxController;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
+import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
+import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.ScriptResult;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebRequest;
 import com.gargoylesoftware.htmlunit.html.DomNodeList;
+import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
@@ -61,6 +67,9 @@ class HeadlessApp {
         webClient = new WebClient(BrowserVersion.FIREFOX_52);
         webClient.getOptions().setJavaScriptEnabled(true);
         webClient.getOptions().setCssEnabled(false);
+        webClient.getOptions().setRedirectEnabled(true);
+    //    webClient.getOptions().setThrowExceptionOnScriptError(true);
+
         System.out.println("Webclient created and initialized");
     }
 
@@ -177,30 +186,23 @@ class HeadlessApp {
         for(HtmlElement item : timetableItems){
             if(item.getAttribute("class").equals("dayHeader")){
                 daysParsed++;
-            } else if( !item.getAttribute("class").equals("header") && daysParsed == 1
+            } else if( !item.getAttribute("class").equals("header") //&& daysParsed == 1
                     && isClassTime(time, item) && isClassName(name, item) && isBookeable(item)){
                 System.out.println("Item to book has been found");
-                HtmlLink aElem = item.getFirstByXPath(".//td[7]/a");
-                aElem.click();
-                System.out.println("Book link clicked");
-                //try 20 times to wait .5 second each for filling the page.
-                for (int i = 0; i < 20; i++) {
-                    try{
-                        if (page.getHtmlElementById("btnPayNow") != null){
-                            break;
-                        }
-                    } catch (ElementNotFoundException e){}
-                    synchronized (page) {
-                        page.wait(500);
-                    }
+                HtmlAnchor aElem = item.getFirstByXPath(".//td[7]/a");
+                page = (HtmlPage) webClient.getCurrentWindow().getEnclosedPage();
+                String jsFunction = aElem.getAttribute("onclick");
+                jsFunction = jsFunction.replace("return false;", "");
+                ScriptResult scriptResult = page.executeJavaScript( jsFunction);
+                webClient.waitForBackgroundJavaScript(10000);
+                synchronized (webClient) {
+                    webClient.wait(10000);
                 }
-
-                HtmlElement butpay = page.getHtmlElementById("btnPayNow");
-                butpay.click();
+                webClient.getPage(Constants.CONFIRM_LINK);
                 System.out.println("Booking Confirmed");
                 break;
             }
-            if(daysParsed >= 2){
+            if(daysParsed >= 3){
                 break;
             }
         }
